@@ -1,0 +1,678 @@
+
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <title>ON DUTY STUNBERG GARAGE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              display: ["Poppins", "system-ui", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+	<style>
+@keyframes colorBlink {
+  0% { color: #ff0000; }      /* Merah */
+  25% { color: #ff8800; }     /* Oranye */
+  50% { color: #ffff00; }     /* Kuning */
+  75% { color: #00ffff; }     /* Cyan */
+  100% { color: #ff0000; }    /* Kembali merah */
+}
+
+@keyframes glow {
+  0% { text-shadow: 0 0 5px #ff0000; }
+  50% { text-shadow: 0 0 15px #00ffff; }
+  100% { text-shadow: 0 0 5px #ff0000; }
+}
+
+.color-blink {
+  animation: colorBlink 2s infinite linear, glow 2s infinite ease-in-out;
+  font-weight: bold;
+}
+</style>
+  </head>
+  <body class="min-h-screen bg-slate-900 flex items-center justify-center px-4">
+    <div
+      class="w-full max-w-5xl bg-slate-800/90 backdrop-blur border border-slate-700 rounded-2xl p-8 shadow-2xl text-slate-100 font-display"
+    >
+      <!-- Header: Logo + Jam Digital WIB -->
+      <div flex flex-col gap-4 mb-8
+         md:flex-row md:items-center md:justify-between">
+        <!-- Logo kiri -->
+        <div class="flex items-center gap-4">
+          <div
+            class="w-56 h-28 rounded-xl bg-slate-900 flex items-center justify-center shadow-md"
+          >
+            <!-- Ganti src dengan logo kamu -->
+            <img
+              src="https://media.discordapp.net/attachments/1405088084198166609/1405088084399357978/SG_GARAGE.png?ex=69260100&is=6924af80&hm=e80f4e773f1cc34874d1ece92a7c1c1754de97e83ada4f90ae03f13c9ca0261f&=&format=webp&quality=lossless"
+              alt="Logo"
+              class="-"
+            />
+          </div>
+          <div>
+            <p class="text-xs text-slate-400 uppercase tracking-[0.2em]">
+              Check In
+            </p>
+            <p class="text-sm font-semibold color-blink">DUTY STUNBERG GARAGE</p>
+          </div>
+        </div>
+
+        <!-- Jam digital WIB kanan (tanpa teks Waktu Indonesia Barat) -->
+        <div class="text-right">
+          <div
+            class="inline-flex items-center gap-2 bg-slate-900/80 border border-slate-700 rounded-xl px-3 py-2 shadow-md"
+          >
+            <span
+              id="wibDate"
+              class="hidden sm:inline text-[11px] md:text-xs text-slate-300"
+            >
+              <!-- Contoh: Senin, 25 Nov 2025 -->
+            </span>
+            <span
+              id="wibTime"
+              class="font-mono text-sm md:text-lg tracking-[0.25em] tabular-nums"
+            >
+              00:00:00
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Username -->
+      <label class="block text-sm font-semibold mb-2" for="username"
+        >Username</label
+      >
+      <input
+        id="username"
+        type="text"
+        placeholder="Masukkan username"
+        class="w-full rounded-xl border border-slate-600 bg-slate-900/60 px-4 py-3 mb-4 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 placeholder:text-slate-500"
+      />
+
+      <!-- Tombol Check In -->
+      <button
+        onclick="handleCheckIn()"
+        class="w-full md:w-auto bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-400 text-slate-900 font-semibold px-8 py-3 rounded-xl shadow hover:brightness-110 hover:shadow-lg active:scale-95 transition"
+      >
+        CHECK IN
+      </button>
+
+      <!-- Grid User Aktif + History -->
+      <div class="grid md:grid-cols-2 gap-6 mt-10">
+        <!-- USER AKTIF (multi login) -->
+        <div>
+          <div class="flex justify-between mb-2">
+            <h2 class="font-bold text-lg">USER AKTIF</h2>
+            <span class="text-[11px] text-slate-400">Multi login</span>
+          </div>
+
+          <div
+            class="border border-emerald-500/50 bg-emerald-950/30 rounded-xl overflow-hidden"
+          >
+            <div
+              class="grid grid-cols-[1.3fr_1.1fr] text-xs bg-emerald-900/50 border-b border-emerald-700"
+            >
+              <div class="p-2 font-semibold uppercase tracking-wide">
+                Username
+              </div>
+              <div class="p-2 font-semibold uppercase tracking-wide text-right">
+                Aksi
+              </div>
+            </div>
+            <div id="activeUserBox" class="p-4 text-sm space-y-2">
+              <p class="text-slate-400 italic">Belum ada user yang aktif.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- HISTORY dengan durasi -->
+        <div>
+          <div class="flex justify-between mb-2">
+            <h2 class="font-bold text-lg">HISTORY</h2>
+            <span class="text-[11px] text-slate-400"
+              >Check in, out & durasi</span
+            >
+          </div>
+
+          <div
+            class="border border-slate-700 bg-slate-900/40 rounded-xl max-h-80 overflow-y-auto"
+          >
+            <div
+              class="grid grid-cols-[0.8fr_1.1fr_1.1fr_1.2fr] text-xs bg-slate-800/70 border-b border-slate-700"
+            >
+              <div class="p-2 font-semibold uppercase tracking-wide">User</div>
+              <div class="p-2 font-semibold uppercase tracking-wide">
+                Check In
+              </div>
+              <div class="p-2 font-semibold uppercase tracking-wide">
+                Check Out
+              </div>
+              <div class="p-2 font-semibold uppercase tracking-wide">
+                Durasi
+              </div>
+            </div>
+            <div id="historyList" class="p-4 space-y-2 text-sm">
+              <p class="text-slate-500 italic">Belum ada history check in.</p>
+            </div>
+          </div>
+
+          <!-- Tombol Clear History -->
+          <button
+            onclick="clearHistory()"
+            class="mt-3 w-full bg-gradient-to-r from-red-500 via-rose-500 to-orange-400 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow hover:shadow-lg hover:brightness-110 active:scale-95 transition"
+          >
+            CLEAR HISTORY
+          </button>
+        </div>
+      </div>
+      <!-- REKAP MINGGUAN & BULANAN -->
+      <div class="mt-10 grid md:grid-cols-2 gap-6">
+        <!-- Rekap Mingguan -->
+        <div>
+          <div class="flex justify-between mb-2">
+            <h2 class="font-bold text-lg">REKAP MINGGU INI</h2>
+            <span class="text-[11px] text-slate-400">Per user</span>
+          </div>
+          <div class="border border-slate-700 bg-slate-900/40 rounded-xl p-4 text-sm">
+            <div class="flex justify-between text-xs font-semibold border-b border-slate-700 pb-1 mb-2">
+              <span>User</span>
+              <span>Durasi</span>
+            </div>
+            <div id="weeklyRecapBox" class="space-y-1">
+              <p class="text-slate-500 italic">Belum ada data minggu ini.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rekap Bulanan -->
+        <div>
+          <div class="flex justify-between mb-2">
+            <h2 class="font-bold text-lg">REKAP BULAN INI</h2>
+            <span class="text-[11px] text-slate-400">Per user</span>
+          </div>
+          <div class="border border-slate-700 bg-slate-900/40 rounded-xl p-4 text-sm">
+            <div class="flex justify-between text-xs font-semibold border-b border-slate-700 pb-1 mb-2">
+              <span>User</span>
+              <span>Durasi</span>
+            </div>
+            <div id="monthlyRecapBox" class="space-y-1">
+              <p class="text-slate-500 italic">Belum ada data bulan ini.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Struktur data: { username, checkIn, checkOut, checkInTs, checkOutTs }
+      let historyData = [];
+
+      // Format teks waktu WIB untuk penyimpanan (check in / out)
+      function formatTime(dateObj) {
+        return dateObj
+          .toLocaleString("id-ID", { timeZone: "Asia/Jakarta" })
+          .replaceAll(".", ":");
+      }
+
+      // Format durasi: 1 jam 30 menit 30 detik
+      function formatDuration(startMs, endMs) {
+        if (startMs == null || endMs == null || endMs < startMs) return "-";
+        let totalSeconds = Math.floor((endMs - startMs) / 1000);
+        if (totalSeconds < 0) totalSeconds = 0;
+
+        const jam = Math.floor(totalSeconds / 3600);
+        totalSeconds %= 3600;
+        const menit = Math.floor(totalSeconds / 60);
+        const detik = totalSeconds % 60;
+
+        const parts = [];
+        if (jam > 0) parts.push(`${jam} jam`);
+        if (menit > 0) parts.push(`${menit} menit`);
+        parts.push(`${detik} detik`);
+
+        return parts.join(" ");
+      }
+
+		function save() {
+		// kirim historyData ke API Cloudflare
+		fetch("/history", {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify(historyData),
+		}).catch((err) => console.error("Gagal save history:", err));
+	}
+
+		async function load() {
+		try {
+		const res = await fetch("/history");
+		if (res.ok) {
+		historyData = await res.json();
+		} else {
+		historyData = [];
+		}
+	} catch (e) {
+	console.error("Gagal load history:", e);
+    historyData = [];
+  }
+}
+
+// Helper: awal minggu ini (Senin 00:00) & cek minggu/bulan
+function getCurrentWeekRange() {
+  const now = new Date();
+  const start = new Date(now);
+  const day = now.getDay(); // 0 = Minggu, 1 = Senin, ...
+  const diffToMonday = (day + 6) % 7; // jarak dari Senin
+  start.setHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - diffToMonday);
+
+  const end = new Date(start);
+  end.setDate(end.getDate() + 7);
+  return { start, end };
+}
+
+function isSameMonth(d1, d2) {
+  return (
+    d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth()
+  );
+}
+
+// Hitung total durasi per user untuk minggu & bulan ini
+function computeRecap() {
+  const weekly = {};
+  const monthly = {};
+  const now = new Date();
+  const { start: weekStart, end: weekEnd } = getCurrentWeekRange();
+
+  historyData.forEach((sesi) => {
+    if (!sesi.checkInTs || !sesi.checkOutTs) return;
+    const durMs = sesi.checkOutTs - sesi.checkInTs;
+    if (durMs <= 0) return;
+
+    const startDate = new Date(sesi.checkInTs);
+    const uname = sesi.username || "Unknown";
+
+    // Minggu ini
+    if (startDate >= weekStart && startDate < weekEnd) {
+      weekly[uname] = (weekly[uname] || 0) + durMs;
+    }
+
+    // Bulan ini
+    if (isSameMonth(startDate, now)) {
+      monthly[uname] = (monthly[uname] || 0) + durMs;
+    }
+  });
+
+  return { weekly, monthly };
+}
+
+// Render tabel recap (dipakai 2x)
+function renderRecapTable(map, boxId, emptyText) {
+  const box = document.getElementById(boxId);
+  if (!box) return;
+  box.innerHTML = "";
+
+  const entries = Object.entries(map);
+  if (!entries.length) {
+    box.innerHTML = `<p class="text-slate-500 italic">${emptyText}</p>`;
+    return;
+  }
+
+  // Urutkan dari durasi terbesar
+  entries.sort((a, b) => b[1] - a[1]);
+
+  entries.forEach(([username, totalMs], idx) => {
+    const row = document.createElement("div");
+    row.className =
+      "flex items-center justify-between text-sm border-b border-slate-700/60 py-1 last:border-0";
+
+    row.innerHTML = `
+      <div class="flex items-center gap-2">
+        <span class="text-xs text-slate-500">${idx + 1}.</span>
+        <span class="font-semibold text-slate-100">${username}</span>
+      </div>
+      <div class="text-xs text-emerald-300">
+        ${formatDuration(0, totalMs)}
+      </div>
+    `;
+    box.appendChild(row);
+  });
+}
+
+// Fungsi utama untuk render rekap
+function renderRecap() {
+  const { weekly, monthly } = computeRecap();
+  renderRecapTable(weekly, "weeklyRecapBox", "Belum ada data minggu ini.");
+  renderRecapTable(monthly, "monthlyRecapBox", "Belum ada data bulan ini.");
+}
+
+      // Render tabel history
+      function renderHistory() {
+        const box = document.getElementById("historyList");
+        box.innerHTML = "";
+
+        if (!historyData.length) {
+          box.innerHTML =
+            '<p class="text-slate-500 italic">Belum ada history check in.</p>';
+          return;
+        }
+
+        historyData.forEach((sesi) => {
+          const row = document.createElement("div");
+          row.className =
+            "grid grid-cols-[0.8fr_1.1fr_1.1fr_1.2fr] border-b border-slate-700 pb-1 mb-1 last:border-b-0 last:mb-0";
+
+          let durasiText = "Belum logout";
+          if (sesi.checkOut) {
+            if (sesi.checkInTs && sesi.checkOutTs) {
+              durasiText = formatDuration(sesi.checkInTs, sesi.checkOutTs);
+            } else {
+              durasiText = "Tidak tersedia";
+            }
+          }
+
+          row.innerHTML = `
+          <div class="font-semibold text-slate-100">${sesi.username}</div>
+          <div class="text-xs text-slate-300">${sesi.checkIn}</div>
+          <div class="text-xs ${
+            sesi.checkOut ? "text-slate-300" : "text-amber-400"
+          }">
+            ${sesi.checkOut || "Belum logout"}
+          </div>
+          <div class="text-xs ${
+            sesi.checkOut ? "text-emerald-300" : "text-amber-400"
+          }">
+            ${durasiText}
+          </div>
+        `;
+          box.appendChild(row);
+        });
+      }
+
+      // Render user aktif (multi login)
+      function renderActiveUsers() {
+        const box = document.getElementById("activeUserBox");
+        box.innerHTML = "";
+
+        const activeSessions = historyData
+          .map((s, idx) => ({ ...s, index: idx }))
+          .filter((s) => !s.checkOut);
+
+        if (!activeSessions.length) {
+          box.innerHTML =
+            '<p class="text-slate-400 italic">Belum ada user yang aktif.</p>';
+          return;
+        }
+
+        activeSessions.forEach((sesi) => {
+          const row = document.createElement("div");
+          row.className =
+            "flex items-center justify-between gap-3 border-b border-emerald-800/60 pb-2 last:border-b-0";
+          row.innerHTML = `
+          <div>
+            <p class="font-semibold text-slate-50 text-sm">${sesi.username}</p>
+            <p class="text-[11px] text-emerald-300/80">Aktif sejak: ${sesi.checkIn}</p>
+          </div>
+          <button
+            class="inline-flex items-center justify-center rounded-lg
+                   bg-gradient-to-r from-rose-500 via-red-500 to-orange-400
+                   px-3 py-1.5 text-[11px] font-semibold text-slate-50
+                   shadow hover:shadow-lg hover:brightness-110 active:scale-95 transition"
+            onclick="handleLogout(${sesi.index})"
+          >
+            LOGOUT
+          </button>
+        `;
+          box.appendChild(row);
+        });
+      }
+
+      // Check In (multi login)
+      function handleCheckIn() {
+        const input = document.getElementById("username");
+        const username = input.value.trim();
+
+        if (!username) {
+          Swal.fire({
+            title: "Oops...",
+            text: "Username tidak boleh kosong!",
+            icon: "warning",
+            confirmButtonText: "Mengerti",
+            confirmButtonColor: "#f97316",
+            background: "#020617",
+            color: "#e2e8f0",
+          });
+          return;
+        }
+
+        const now = new Date();
+        const timeText = formatTime(now);
+        const timeMs = now.getTime();
+
+        Swal.fire({
+          title: "Check In Berhasil!",
+          html: `<b>${username}</b> berhasil check in<br><small>${timeText} WIB</small>`,
+          icon: "success",
+          confirmButtonText: "Sip",
+          confirmButtonColor: "#22c55e",
+          background: "#020617",
+          color: "#e2e8f0",
+        }).then(() => {
+          const newSession = {
+            username: username,
+            checkIn: timeText + " WIB",
+            checkOut: null,
+            checkInTs: timeMs,
+            checkOutTs: null,
+          };
+
+          historyData.unshift(newSession);
+
+          save();
+          renderHistory();
+          renderActiveUsers();
+		  renderRecap();
+
+          input.value = "";
+          input.focus();
+        });
+      }
+
+      // Logout per user
+      function handleLogout(index) {
+        if (!historyData[index] || historyData[index].checkOut) return;
+
+        const sesi = historyData[index];
+
+        Swal.fire({
+          title: "Logout?",
+          text: `Yakin ingin logout dari ${sesi.username}?`,
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonText: "Ya, logout",
+          cancelButtonText: "Batal",
+          confirmButtonColor: "#ef4444",
+          cancelButtonColor: "#64748b",
+          background: "#020617",
+          color: "#e2e8f0",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            const now = new Date();
+            const timeOutText = formatTime(now);
+            const timeOutMs = now.getTime();
+
+            historyData[index].checkOut = timeOutText + " WIB";
+            historyData[index].checkOutTs = timeOutMs;
+
+            save();
+            renderHistory();
+            renderActiveUsers();
+			renderRecap();
+
+            Swal.fire({
+              title: "Berhasil logout",
+              text: `Waktu check out: ${timeOutText} WIB`,
+              icon: "success",
+              timer: 1600,
+              showConfirmButton: false,
+              background: "#020617",
+              color: "#e2e8f0",
+            });
+          }
+        });
+      }
+
+      // Hapus semua history
+      function clearHistory() {
+        Swal.fire({
+          title: "Hapus semua history?",
+          text: "Data check in & check out akan hilang permanen.",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "Ya, hapus",
+          cancelButtonText: "Batal",
+          confirmButtonColor: "#ef4444",
+          cancelButtonColor: "#64748b",
+          background: "#020617",
+          color: "#e2e8f0",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            historyData = [];
+            save();
+            renderHistory();
+            renderActiveUsers();
+			renderRecap();
+
+            Swal.fire({
+              title: "Berhasil!",
+              text: "Semua history telah dihapus.",
+              icon: "success",
+              timer: 1500,
+              showConfirmButton: false,
+              background: "#020617",
+              color: "#e2e8f0",
+            });
+          }
+        });
+      }
+
+      // Jam digital WIB di header
+      function updateWIBClock() {
+        const now = new Date();
+
+        const timeStr = now
+          .toLocaleTimeString("id-ID", {
+            timeZone: "Asia/Jakarta",
+            hour12: false,
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          })
+          .replaceAll(".", ":");
+
+        const dateStr = now.toLocaleDateString("id-ID", {
+          timeZone: "Asia/Jakarta",
+          weekday: "long",
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        });
+
+        const timeEl = document.getElementById("wibTime");
+        const dateEl = document.getElementById("wibDate");
+
+        if (timeEl) timeEl.textContent = timeStr;
+        if (dateEl) dateEl.textContent = dateStr;
+      }
+
+async function init() {
+  await load();           // ambil history dari KV
+  renderHistory();
+  renderActiveUsers();
+  renderRecap();
+
+  updateWIBClock();
+  setInterval(updateWIBClock, 1000);
+}
+
+window.addEventListener("load", init);
+
+/* ========== ANTI INSPECT / CTRL+U ========== */
+
+// popup peringatan (pakai SweetAlert2)
+function showInspectWarning() {
+  Swal.fire({
+    title: "Eits... dilarang intip kode!",
+    html: "Source code ini dilindungi ETHAN<br>Silakan tutup Developer Tools 😊",
+    imageUrl: "https://media.discordapp.net/attachments/1429011190046134307/1433308607340089436/Iklan_Billboard_Mera_5.jpeg?format=webp&width=819&height=461",
+    imageWidth: 400,
+    imageAlt: "Warning",
+    confirmButtonText: "Ok, maaf ethan😅",
+    confirmButtonColor: "#f97316",
+    background: "#020617",
+    color: "#e2e8f0",
+  });
+}
+
+// blokir beberapa shortcut DevTools & View Source
+document.addEventListener("keydown", function (e) {
+  // F12
+  if (e.key === "F12") {
+    e.preventDefault();
+    showInspectWarning();
+  }
+
+  // Ctrl+Shift+I / J / C
+  if (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key.toUpperCase())) {
+    e.preventDefault();
+    showInspectWarning();
+  }
+
+  // Ctrl+U (View Source)
+  if (e.ctrlKey && e.key.toUpperCase() === "U") {
+    e.preventDefault();
+    showInspectWarning();
+  }
+});
+
+// blokir klik kanan
+document.addEventListener("contextmenu", function (e) {
+  e.preventDefault();
+  showInspectWarning();
+});
+
+// (opsional) deteksi DevTools terbuka
+let devtoolsOpen = false;
+setInterval(function () {
+  const threshold = 160;
+  if (
+    window.outerWidth - window.innerWidth > threshold ||
+    window.outerHeight - window.innerHeight > threshold
+  ) {
+    if (!devtoolsOpen) {
+      devtoolsOpen = true;
+      showInspectWarning();
+    }
+  } else {
+    devtoolsOpen = false;
+  }
+}, 1000);
+
+/* ========== END ANTI INSPECT ========== */
+    </script>
+  </body>
+</html>
