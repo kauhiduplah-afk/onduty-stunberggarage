@@ -255,13 +255,17 @@
 		fetch("/history", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
+		cache: "no-store",
 		body: JSON.stringify(historyData),
 		}).catch((err) => console.error("Gagal save history:", err));
 	}
 
 		async function load() {
 		try {
-		const res = await fetch("/history");
+		const res = await fetch("/history?ts=" + Date.now(), {
+		// pastikan browser tidak pakai cache lokal
+		cache: "no-store"
+		});
 		if (res.ok) {
 		historyData = await res.json();
 		} else {
@@ -799,5 +803,6 @@ setInterval(function () {
     </script>
   </body>
 </html>
+
 
 
